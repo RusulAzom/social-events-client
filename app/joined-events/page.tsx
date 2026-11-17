@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
+import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui-button";
 import Link from "next/link";
-import { Calendar, Users, Clock } from "lucide-react";
+import { Calendar, Users } from "lucide-react";
 
 interface JoinedEvent {
   id: string;
@@ -18,39 +18,44 @@ interface JoinedEvent {
 }
 
 export default function JoinedEventsPage() {
+  const { data: session, isPending } = authClient.useSession();
   const [events, setEvents] = useState<JoinedEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [fetched, setFetched] = useState(false);
   const { toast } = useToast();
 
+  const loading = isPending || (!!session?.user && !fetched);
+
   useEffect(() => {
-    loadEvents();
-  }, []);
-
-  async function loadEvents() {
-    const { data: session } = await authClient.useSession();
-    if (!session?.user) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/joined-events`, {
-        headers: { "Content-Type": "application/json" },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const sorted = (data.events || data || []).sort(
-          (a: JoinedEvent, b: JoinedEvent) =>
-            new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime()
-        );
-        setEvents(sorted);
+    if (isPending || !session?.user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get(`${process.env.NEXT_PUBLIC_API_URL}/api/joined-events`);
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          const raw = data.events || data || [];
+          const sorted = raw
+            .map((e: Record<string, string>) => ({
+              ...e,
+              id: e.id ?? e._id,
+              thumbnailUrl: e.thumbnailUrl ?? e.thumbnail ?? "",
+            }))
+            .sort(
+              (a: JoinedEvent, b: JoinedEvent) =>
+                new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime()
+            );
+          setEvents(sorted);
+        }
+      } catch {
+        if (!cancelled) toast({ title: "Failed to load joined events", variant: "destructive" });
+      } finally {
+        if (!cancelled) setFetched(true);
       }
-    } catch {
-      toast({ title: "Failed to load joined events", variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isPending, session, toast]);
 
   return (
     <div className="flex flex-col flex-1">
@@ -80,11 +85,23 @@ export default function JoinedEventsPage() {
             <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center text-muted-foreground mx-auto mb-4">
               <Users className="h-8 w-8" />
             </div>
-            <h3 className="text-lg font-medium text-foreground mb-2">No joined events yet</h3>
-            <p className="text-muted-foreground">Start joining events from the upcoming events page.</p>
+          <h3 className="text-lg font-medium text-foreground mb-2">
+            {session?.user ? "No joined events yet" : "Please log in"}
+          </h3>
+          <p className="text-muted-foreground">
+            {session?.user
+              ? "Start joining events from the upcoming events page."
+              : "Log in to see the events you have joined."}
+          </p>
+          {session?.user ? (
             <Link href="/upcoming-events" className="mt-4 inline-flex items-center gap-2 text-primary font-medium hover:underline">
               <Calendar className="h-4 w-4" /> Browse Events
             </Link>
+          ) : (
+            <Link href="/login" className="mt-4 inline-flex items-center gap-2 text-primary font-medium hover:underline">
+              <Calendar className="h-4 w-4" /> Log In
+            </Link>
+          )}
           </div>
         ) : (
           <div className="grid md:grid-cols-3 gap-6">

@@ -7,8 +7,6 @@ import { Mail, Lock } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui-button";
 
-const PASSWORD_REGEX = /(?=.*[a-z])(?=.*[A-Z]).{6,}/;
-
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,13 +36,30 @@ export default function LoginPage() {
         title: "Welcome back!",
         description: "You have successfully logged in.",
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Login failed",
-        description: error.message || "An unexpected error occurred",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGitHubSignIn = async () => {
+    setLoading(true);
+    try {
+      await authClient.signIn.social({
+        provider: "github",
+        callbackURL: "/",
+      });
+    } catch (error) {
+      toast({
+        title: "GitHub sign-in failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        variant: "destructive",
+      });
       setLoading(false);
     }
   };
@@ -97,13 +112,13 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-6">
-          <Button variant="outline" onClick={() => {}} className="w-full py-3 flex items-center justify-center gap-2">
+          <Button variant="outline" onClick={handleGitHubSignIn} className="w-full py-3 flex items-center justify-center gap-2">
             Continue with GitHub
           </Button>
         </div>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/register" className="text-primary font-medium hover:underline">
             Sign up
           </Link>

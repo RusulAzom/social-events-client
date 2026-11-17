@@ -5,8 +5,9 @@ import { useState, useEffect, Suspense } from "react";
 
 import { useToast } from "@/components/ui/use-toast";
 import { authClient } from "@/lib/auth-client";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui-button";
-import { Calendar, MapPin, Users, Clock } from "lucide-react";
+import { Calendar, MapPin, Users } from "lucide-react";
 import Image from "next/image";
 import { format } from "date-fns";
 
@@ -38,30 +39,40 @@ export default function EventDetailsPage() {
 
 function EventDetails() {
   const params = useParams();
+  const { data: session } = authClient.useSession();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    loadEvent();
-  }, [params]);
-
-  async function loadEvent() {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${params.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setEvent(data.event || data);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${params.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          const raw = data.event || data;
+          if (!cancelled) {
+            setEvent({
+              ...raw,
+              id: raw.id ?? raw._id,
+              thumbnailUrl: raw.thumbnailUrl ?? raw.thumbnail ?? "",
+            });
+          }
+        }
+      } catch {
+        if (!cancelled) setEvent(null);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    } catch {
-      setEvent(null);
-    } finally {
-      setLoading(false);
-    }
-  }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [params.id]);
 
   async function joinEvent() {
-    const { data: session } = await authClient.useSession();
+    if (!event) return;
     if (!session?.user) {
       toast({
         title: "Authentication required",
@@ -72,10 +83,8 @@ function EventDetails() {
     }
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/joined-events`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventId: event!.id }),
+      const res = await api.post(`${process.env.NEXT_PUBLIC_API_URL}/api/joined-events`, {
+        eventId: event.id,
       });
 
       if (res.ok) {

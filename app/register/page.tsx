@@ -54,10 +54,10 @@ export default function RegisterPage() {
         title: "Account created!",
         description: "You have successfully registered. Please log in.",
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Registration failed",
-        description: error.message || "An unexpected error occurred",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {

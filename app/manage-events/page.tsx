@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
+import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui-button";
 import Link from "next/link";
@@ -17,43 +18,46 @@ interface ManagedEvent {
 }
 
 export default function ManageEventsPage() {
+  const { data: session, isPending } = authClient.useSession();
   const [events, setEvents] = useState<ManagedEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [openEvent, setOpenEvent] = useState<ManagedEvent | null>(null);
+  const [fetched, setFetched] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadEvents();
-  }, []);
+  const loading = isPending || (!!session?.user && !fetched);
 
-  async function loadEvents() {
-    const { data: session } = await authClient.useSession();
-    if (!session?.user) {
-      setLoading(false);
-      return;
-    }
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/manage`, {
-        headers: { "Content-Type": "application/json" },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setEvents(data.events || data || []);
+  useEffect(() => {
+    if (isPending || !session?.user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get(`${process.env.NEXT_PUBLIC_API_URL}/api/events/manage`);
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          const raw = data.events || data || [];
+          setEvents(
+            raw.map((e: Record<string, string>) => ({
+              ...e,
+              id: e.id ?? e._id,
+              thumbnailUrl: e.thumbnailUrl ?? e.thumbnail ?? "",
+            }))
+          );
+        }
+      } catch {
+        if (!cancelled) toast({ title: "Failed to load events", variant: "destructive" });
+      } finally {
+        if (!cancelled) setFetched(true);
       }
-    } catch {
-      toast({ title: "Failed to load events", variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isPending, session, toast]);
 
   async function handleDelete() {
     if (!deleteId) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${deleteId}`, {
-        method: "DELETE",
-      });
+      const res = await api.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${deleteId}`);
       if (res.ok) {
         setEvents(events.filter((e) => e.id !== deleteId));
         toast({ title: "Event deleted" });
@@ -93,11 +97,23 @@ export default function ManageEventsPage() {
         ) : events.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-muted-foreground mx-auto mb-4">📭</div>
-            <h3 className="text-lg font-medium text-foreground mb-2">No events created yet</h3>
-            <p className="text-muted-foreground">Create your first event to get started.</p>
+          <h3 className="text-lg font-medium text-foreground mb-2">
+            {session?.user ? "No events created yet" : "Please log in"}
+          </h3>
+          <p className="text-muted-foreground mb-4">
+            {session?.user
+              ? "Create your first event to get started."
+              : "Log in to manage the events you have created."}
+          </p>
+          {session?.user ? (
             <Link href="/create-event" className="mt-4 inline-flex items-center gap-2 text-primary font-medium hover:underline">
               Create Event
             </Link>
+          ) : (
+            <Link href="/login" className="mt-4 inline-flex items-center gap-2 text-primary font-medium hover:underline">
+              Log In
+            </Link>
+          )}
           </div>
         ) : (
           <div className="grid md:grid-cols-3 gap-6">

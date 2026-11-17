@@ -1,43 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
+import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui-button";
-import { User, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 
 export default function ProfilePage() {
-  const [userData, setUserData] = useState<{ name: string; image: string } | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: session, isPending } = authClient.useSession();
+  const [nameOverride, setNameOverride] = useState<string | null>(null);
+  const [imageOverride, setImageOverride] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  async function loadProfile() {
-    const { data: session } = await authClient.useSession();
-    if (session?.user) {
-      setUserData({
-        name: session.user.name || "",
-        image: session.user.image || "",
-      });
-    }
-    setLoading(false);
-  }
+  const name = nameOverride ?? session?.user?.name ?? "";
+  const image = imageOverride ?? session?.user?.image ?? "";
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData),
-      });
+      const res = await api.put(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, { name, image });
       if (res.ok) {
         toast({ title: "Profile updated" });
       } else {
@@ -50,7 +34,7 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading) return (
+  if (isPending) return (
     <div className="flex flex-col flex-1 items-center justify-center py-20">
       <div className="h-8 w-32 bg-secondary rounded animate-pulse" />
     </div>
@@ -69,9 +53,9 @@ export default function ProfilePage() {
         <div className="bg-background rounded-xl border border-border p-8 shadow-sm">
           <div className="flex flex-col md:flex-row gap-8 items-start">
             <div className="flex-shrink-0">
-              {userData?.image ? (
+              {image ? (
                 <Image
-                  src={userData.image}
+                  src={image}
                   alt="Profile"
                   className="h-24 w-24 rounded-full object-cover border border-border"
                   width={96}
@@ -80,7 +64,7 @@ export default function ProfilePage() {
                 />
               ) : (
                 <div className="h-24 w-24 rounded-full bg-primary flex items-center justify-center text-white font-bold text-3xl">
-                  {userData?.name?.charAt(0)?.toUpperCase() || "U"}
+                  {name?.charAt(0)?.toUpperCase() || "U"}
                 </div>
               )}
             </div>
@@ -90,8 +74,8 @@ export default function ProfilePage() {
                   <label className="text-sm font-medium text-foreground">Full Name</label>
                   <input
                     type="text"
-                    value={userData?.name || ""}
-                    onChange={(e) => setUserData({ ...userData!, name: e.target.value })}
+                    value={name}
+                    onChange={(e) => setNameOverride(e.target.value)}
                     className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
                   />
                 </div>
@@ -100,8 +84,8 @@ export default function ProfilePage() {
                   <input
                     type="url"
                     placeholder="https://example.com/avatar.jpg"
-                    value={userData?.image || ""}
-                    onChange={(e) => setUserData({ ...userData!, image: e.target.value })}
+                    value={image}
+                    onChange={(e) => setImageOverride(e.target.value)}
                     className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
                   />
                 </div>

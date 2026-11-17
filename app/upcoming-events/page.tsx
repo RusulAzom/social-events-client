@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import EventSkeleton from "@/components/event-skeleton";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui-button";
+import Link from "next/link";
 
 const EVENT_TYPES = ["Cleanup", "Plantation", "Donation", "Awareness", "Relief"];
 
@@ -24,23 +25,31 @@ export default function UpcomingEventsPage() {
   const [filter, setFilter] = useState("");
 
   useEffect(() => {
-    loadEvents();
-  }, []);
-
-  async function loadEvents() {
-    setLoading(true);
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events`);
-      if (res.ok) {
-        const data = await res.json();
-        setEvents(data.events || data || []);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events`);
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          const raw = data.events || data || [];
+          setEvents(
+            raw.map((e: Record<string, string>) => ({
+              ...e,
+              id: e.id ?? e._id,
+              thumbnailUrl: e.thumbnailUrl ?? e.thumbnail ?? "",
+            }))
+          );
+        }
+      } catch {
+        if (!cancelled) setEvents([]);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    } catch {
-      setEvents([]);
-    } finally {
-      setLoading(false);
-    }
-  }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filteredEvents = events.filter((e) =>
     e.title.toLowerCase().includes(search.toLowerCase()) &&
@@ -117,7 +126,7 @@ export default function UpcomingEventsPage() {
                     </span>
                   </div>
                   <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-primary/10 text-primary">{event.eventType}</span>
-                  <button onClick={() => {}} className="mt-auto w-full py-2 px-4 bg-primary text-white text-center rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">View Event</button>
+                  <Link href={`/events/${event.id}`} className="mt-auto w-full py-2 px-4 bg-primary text-white text-center rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">View Event</Link>
                 </div>
               </div>
             ))}

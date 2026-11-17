@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { authClient } from "@/lib/auth-client";
+import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui-button";
 import Link from "next/link";
@@ -22,6 +23,7 @@ export default function CreateEventPage() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const { data: session } = authClient.useSession();
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.title.trim()) newErrors.title = "Title is required";
@@ -43,7 +45,6 @@ export default function CreateEventPage() {
     e.preventDefault();
     if (!validate()) return;
 
-    const { data: session } = await authClient.useSession();
     if (!session?.user) {
       toast({ title: "Authentication required", description: "Please log in to create events.", variant: "destructive" });
       return;
@@ -51,11 +52,7 @@ export default function CreateEventPage() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const res = await api.post(`${process.env.NEXT_PUBLIC_API_URL}/api/events`, formData);
 
       if (res.ok) {
         toast({ title: "Event created!", description: "Your event has been successfully created." });
