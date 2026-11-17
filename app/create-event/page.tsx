@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { authClient } from "@/lib/auth-client";
 import { api } from "@/lib/api";
@@ -11,6 +11,38 @@ import Link from "next/link";
 const EVENT_TYPES = ["Cleanup", "Plantation", "Donation", "Awareness", "Relief"];
 
 export default function CreateEventPage() {
+  return (
+    <div className="flex flex-col flex-1">
+      <div className="border-b border-border bg-background sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">Create Event</h1>
+              <p className="text-muted-foreground text-sm">Organize your next social gathering</p>
+            </div>
+            <Link href="/upcoming-events" className="text-sm font-medium text-primary hover:underline">← Back to events</Link>
+          </div>
+        </div>
+      </div>
+
+      <Suspense
+        fallback={
+          <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+            <div className="bg-background rounded-xl border border-border p-8 shadow-sm space-y-6 animate-pulse">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-10 bg-secondary rounded-lg" />
+              ))}
+            </div>
+          </div>
+        }
+      >
+        <CreateEventForm />
+      </Suspense>
+    </div>
+  );
+}
+
+function CreateEventForm() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -24,6 +56,11 @@ export default function CreateEventPage() {
   const { toast } = useToast();
   const router = useRouter();
   const { data: session } = authClient.useSession();
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const now = new Date();
+  const minDateTime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.title.trim()) newErrors.title = "Title is required";
@@ -31,19 +68,35 @@ export default function CreateEventPage() {
     if (!formData.thumbnailUrl.trim()) newErrors.thumbnailUrl = "Thumbnail URL is required";
     if (!formData.location.trim()) newErrors.location = "Location is required";
     if (!formData.eventDate) newErrors.eventDate = "Event date is required";
-    else {
-      const selectedDate = new Date(formData.eventDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (selectedDate < today) newErrors.eventDate = "Event date must be in the future";
+    else if (new Date(formData.eventDate) < new Date()) {
+      newErrors.eventDate = "Event date and time must be in the future";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleEventDateChange = (value: string) => {
+    setFormData({ ...formData, eventDate: value });
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.eventDate;
+      return next;
+    });
+    if (value && new Date(value) < new Date()) {
+      setErrors((prev) => ({ ...prev, eventDate: "Event date and time must be in the future" }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate()) {
+      toast({
+        title: "Please fix the highlighted fields",
+        description: errors.eventDate ? "Event date and time must be in the future." : "Check the highlighted fields before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (!session?.user) {
       toast({ title: "Authentication required", description: "Please log in to create events.", variant: "destructive" });
@@ -67,21 +120,8 @@ export default function CreateEventPage() {
     }
   };
   return (
-    <div className="flex flex-col flex-1">
-      <div className="border-b border-border bg-background sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">Create Event</h1>
-              <p className="text-muted-foreground text-sm">Organize your next social gathering</p>
-            </div>
-            <Link href="/upcoming-events" className="text-sm font-medium text-primary hover:underline">← Back to events</Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <form onSubmit={handleSubmit} className="space-y-6 bg-background rounded-xl border border-border p-8 shadow-sm">
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <form onSubmit={handleSubmit} className="space-y-6 bg-background rounded-xl border border-border p-8 shadow-sm">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Event Title</label>
@@ -148,8 +188,9 @@ export default function CreateEventPage() {
             <label className="text-sm font-medium text-foreground">Event Date & Time</label>
             <input
               type="datetime-local"
+              min={minDateTime}
               value={formData.eventDate}
-              onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
+              onChange={(e) => handleEventDateChange(e.target.value)}
               className={`w-full px-4 py-2 rounded-lg border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors ${errors.eventDate ? "border-destructive" : ""}`}
             />
             {errors.eventDate && <p className="text-xs text-destructive">{errors.eventDate}</p>}
@@ -159,7 +200,6 @@ export default function CreateEventPage() {
             {loading ? "Creating..." : "Create Event"}
           </Button>
         </form>
-      </div>
     </div>
   );
 }
