@@ -1,9 +1,8 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 
-export const dynamic = "force-static";
 import { useToast } from "@/components/ui/use-toast";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui-button";
@@ -24,6 +23,20 @@ interface Event {
 }
 
 export default function EventDetailsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-col flex-1 items-center justify-center py-20">
+          <div className="h-8 w-32 bg-secondary rounded animate-pulse" />
+        </div>
+      }
+    >
+      <EventDetails />
+    </Suspense>
+  );
+}
+
+function EventDetails() {
   const params = useParams();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
