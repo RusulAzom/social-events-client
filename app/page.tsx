@@ -83,7 +83,7 @@ export default function Home() {
           </div>
           <div className="grid md:grid-cols-3 gap-4">
             {galleryImages.map((img, idx) => (
-              <div key={idx} className="aspect-square bg-secondary rounded-lg overflow-hidden">
+              <div key={idx} className="relative aspect-square bg-secondary rounded-lg overflow-hidden">
                 <Image src={img} alt={`Gallery ${idx + 1}`} fill className="object-cover hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 100vw, 33vw" />
               </div>
             ))}
