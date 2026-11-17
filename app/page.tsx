@@ -1,69 +1,118 @@
+import Link from "next/link";
+import { Star, Users, MapPin, Calendar, Shield, Heart } from "lucide-react";
 import Image from "next/image";
+
+const features = [
+  { icon: Star, title: "Discover Events", description: "Browse upcoming social events in your community." },
+  { icon: Users, title: "Join Communities", description: "Connect with like-minded people who share your interests." },
+  { icon: MapPin, title: "Local & Global", description: "Find events happening near you or around the world." },
+  { icon: Calendar, title: "Plan Ahead", description: "Save events to your calendar and never miss a moment." },
+  { icon: Shield, title: "Safe & Secure", description: "Verified events and secure authentication." },
+  { icon: Heart, title: "Make Memories", description: "Create unforgettable experiences with friends." },
+];
+
+const galleryImages = ["/globe.svg", "/next.svg", "/file.svg", "/window.svg", "/vercel.svg", "/globe.svg"];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <div className="flex flex-col flex-1">
+      <section className="relative bg-primary text-white overflow-hidden py-20 lg:py-32">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
+            Connect with Your Community Through Social Events
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-lg md:text-xl text-primary-50 mb-8 max-w-2xl mx-auto">
+            Discover, join, and create meaningful social events. From cleanups to plantations, find your next experience today.
           </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/upcoming-events" className="bg-white text-primary px-8 py-4 rounded-lg font-semibold text-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
+              <Calendar className="h-5 w-5" /> Explore Events
+            </Link>
+            <Link href="/create-event" className="border border-white/20 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+              <Star className="h-5 w-5" /> Create Event
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      <section className="py-16 bg-secondary/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground mb-4">Platform Features</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">Everything you need to discover and organize social events in one place.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {features.map((feature, idx) => (
+              <div key={idx} className="p-6 bg-background rounded-xl border border-border hover:shadow-md transition-colors">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary mb-4">
+                  <feature.icon className="h-6 w-6" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-3">{feature.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </main>
+      </section>
+
+      <section className="py-16 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground">Recent Upcoming Events</h2>
+            <Link href="/upcoming-events" className="text-sm font-medium text-primary hover:underline">View all →</Link>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="h-full flex flex-col border border-border rounded-xl overflow-hidden bg-secondary/30">
+                <div className="h-48 bg-secondary" />
+                <div className="p-4 flex-1 flex flex-col">
+                  <h3 className="font-semibold text-lg leading-snug mb-2 line-clamp-2">Community Cleanup Drive {i}</h3>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                    <span className="flex items-center gap-1">
+                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                      City Park
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
+                    <span className="flex items-center gap-1">
+                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      Dec 15, 2024
+                    </span>
+                  </div>
+                  <Link href="/upcoming-events" className="w-full py-2 px-4 bg-primary text-white text-center rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">View Event</Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-secondary/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground mb-4">Community Gallery</h2>
+            <p className="text-muted-foreground">Moments from our recent events</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            {galleryImages.map((img, idx) => (
+              <div key={idx} className="aspect-square bg-secondary rounded-lg overflow-hidden">
+                <Image src={img} alt={`Gallery ${idx + 1}`} fill className="object-cover hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 100vw, 33vw" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-primary">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-white mb-4">Subscribe to our newsletter</h2>
+          <p className="text-primary-50 mb-8 max-w-lg mx-auto">Stay updated with the latest events and community gatherings.</p>
+          <form className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+            <input type="email" placeholder="Enter your email" className="flex-1 px-6 py-4 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-white" />
+            <button type="submit" className="px-8 py-4 bg-white text-primary rounded-lg font-semibold hover:bg-primary/90 transition-colors">Subscribe</button>
+          </form>
+        </div>
+      </section>
     </div>
   );
 }
