@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { authClient } from "@/lib/auth-client";
+import { useRequireAuth } from "@/lib/use-require-auth";
+import AccessDenied from "@/components/access-denied";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui-button";
@@ -20,7 +21,7 @@ interface MyEvent {
 }
 
 export default function MyEventsPage() {
-  const { data: session, isPending } = authClient.useSession();
+  const { session, isPending, authenticated } = useRequireAuth();
   const [events, setEvents] = useState<MyEvent[]>([]);
   const [fetched, setFetched] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -58,6 +59,20 @@ export default function MyEventsPage() {
       cancelled = true;
     };
   }, [isPending, session, toast]);
+
+  if (!authenticated && !isPending) {
+    return (
+      <div className="flex flex-col flex-1">
+        <div className="border-b border-border bg-background sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">My Events</h1>
+            <p className="text-muted-foreground text-sm">Update or remove events you have created</p>
+          </div>
+        </div>
+        <AccessDenied />
+      </div>
+    );
+  }
 
   function openEdit(event: MyEvent) {
     setEditing(event);

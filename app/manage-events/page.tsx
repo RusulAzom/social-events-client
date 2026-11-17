@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { authClient } from "@/lib/auth-client";
+import { useRequireAuth } from "@/lib/use-require-auth";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui-button";
+import AccessDenied from "@/components/access-denied";
 import Link from "next/link";
 
 interface ManagedEvent {
@@ -18,13 +19,13 @@ interface ManagedEvent {
 }
 
 export default function ManageEventsPage() {
-  const { data: session, isPending } = authClient.useSession();
+  const { session, isPending, authenticated } = useRequireAuth();
   const [events, setEvents] = useState<ManagedEvent[]>([]);
   const [fetched, setFetched] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const loading = isPending || (!!session?.user && !fetched);
+  const loading = !fetched;
 
   useEffect(() => {
     if (isPending || !session?.user) return;
@@ -52,7 +53,48 @@ export default function ManageEventsPage() {
     return () => {
       cancelled = true;
     };
-  }, [isPending, session, toast]);
+  }, [session, toast]);
+
+  if (isPending) {
+    return (
+      <div className="flex flex-col flex-1">
+        <div className="border-b border-border bg-background sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Manage Events</h1>
+            <p className="text-muted-foreground text-sm">Events you have created</p>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+          <div className="grid md:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-full flex flex-col border border-border rounded-xl overflow-hidden bg-secondary/30 animate-pulse">
+                <div className="h-48 bg-secondary" />
+                <div className="p-4 flex-1 flex flex-col space-y-3">
+                  <div className="h-4 bg-secondary rounded w-3/4" />
+                  <div className="h-4 bg-secondary rounded w-1/2" />
+                  <div className="h-4 bg-secondary rounded w-full mt-auto" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return (
+      <div className="flex flex-col flex-1">
+        <div className="border-b border-border bg-background sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Manage Events</h1>
+            <p className="text-muted-foreground text-sm">Events you have created</p>
+          </div>
+        </div>
+        <AccessDenied />
+      </div>
+    );
+  }
 
   async function handleDelete() {
     if (!deleteId) return;

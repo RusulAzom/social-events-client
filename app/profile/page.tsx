@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { authClient } from "@/lib/auth-client";
+import { useRequireAuth } from "@/lib/use-require-auth";
+import AccessDenied from "@/components/access-denied";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui-button";
 import Image from "next/image";
 
 export default function ProfilePage() {
-  const { data: session, isPending } = authClient.useSession();
+  const { session, isPending, authenticated } = useRequireAuth();
   const [nameOverride, setNameOverride] = useState<string | null>(null);
   const [imageOverride, setImageOverride] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -39,6 +40,20 @@ export default function ProfilePage() {
       <div className="h-8 w-32 bg-secondary rounded animate-pulse" />
     </div>
   );
+
+  if (!authenticated) {
+    return (
+      <div className="flex flex-col flex-1">
+        <div className="border-b border-border bg-background sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Profile</h1>
+            <p className="text-muted-foreground text-sm">Manage your account settings</p>
+          </div>
+        </div>
+        <AccessDenied />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col flex-1">

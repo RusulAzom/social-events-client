@@ -2,7 +2,8 @@
 
 import { Suspense, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { authClient } from "@/lib/auth-client";
+import { useRequireAuth } from "@/lib/use-require-auth";
+import AccessDenied from "@/components/access-denied";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui-button";
@@ -55,7 +56,7 @@ function CreateEventForm() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
-  const { data: session } = authClient.useSession();
+  const { session, isPending, authenticated } = useRequireAuth();
 
   const pad = (n: number) => String(n).padStart(2, "0");
   const now = new Date();
@@ -119,6 +120,23 @@ function CreateEventForm() {
       setLoading(false);
     }
   };
+
+  if (isPending) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <div className="bg-background rounded-xl border border-border p-8 shadow-sm space-y-6 animate-pulse">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-10 bg-secondary rounded-lg" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return <AccessDenied />;
+  }
+
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
       <form onSubmit={handleSubmit} className="space-y-6 bg-background rounded-xl border border-border p-8 shadow-sm">
