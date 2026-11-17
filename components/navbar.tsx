@@ -1,11 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useTheme } from "next-themes";
 import { authClient } from "@/lib/auth-client";
 import {
-  Sun,
-  Moon,
   User,
   Plus,
   Calendar,
@@ -16,10 +13,10 @@ import {
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth-client";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Navbar() {
   const { data: session, isPending } = authClient.useSession();
-  const { setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const router = useRouter();
@@ -61,6 +58,8 @@ export function Navbar() {
           )}
         </div>
 
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
           {isAuthenticated ? (
             <div className="relative" onClick={() => setDropdownOpen(!dropdownOpen)}>
               <div className="flex items-center gap-2 cursor-pointer">
@@ -133,6 +132,7 @@ export function Navbar() {
           >
             <MenuIcon className="h-5 w-5" />
           </button>
+        </div>
         </div>
       {mobileMenuOpen && (
         <div className="md:hidden border-b border-border bg-background">

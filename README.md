@@ -18,7 +18,7 @@ A platform for discovering, joining, and creating social events in your communit
 ## Tech Stack
 
 - **Frontend**: Next.js 16.4.6 with App Router
-- **Styling**: Tailwind CSS with custom theming using next-themes
+- **Styling**: Tailwind CSS with custom theming via CSS variables and `prefers-color-scheme`
 - **Authentication**: Better Auth with MongoDB Adapter
 - **UI Components**: lucide-react icons, sonner toaster notifications
 - **Database**: MongoDB with better-auth mongodbAdapter

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Star, Users, MapPin, Calendar, Shield, Heart } from "lucide-react";
 import Image from "next/image";
+import { RecentEvents } from "@/components/recent-events";
 
 const features = [
   { icon: Star, title: "Discover Events", description: "Browse upcoming social events in your community." },
@@ -11,7 +12,14 @@ const features = [
   { icon: Heart, title: "Make Memories", description: "Create unforgettable experiences with friends." },
 ];
 
-const galleryImages = ["/globe.svg", "/next.svg", "/file.svg", "/window.svg", "/vercel.svg", "/globe.svg"];
+const galleryImages = [
+  "https://images.unsplash.com/photo-1618477385359-4b2ca8b5a1b3?w=800",
+  "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800",
+  "https://images.unsplash.com/photo-1593113598332-cd288d649433?w=800",
+  "https://images.unsplash.com/photo-1615461066841-6116e61058f4?w=800",
+  "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800",
+  "https://images.unsplash.com/photo-1523966211575-eb4a01e7df51?w=800",
+];
 
 export default function Home() {
   return (
@@ -62,27 +70,7 @@ export default function Home() {
             <Link href="/upcoming-events" className="text-sm font-medium text-primary hover:underline">View all →</Link>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-full flex flex-col border border-border rounded-xl overflow-hidden bg-secondary/30">
-                <div className="h-48 bg-secondary" />
-                <div className="p-4 flex-1 flex flex-col">
-                  <h3 className="font-semibold text-lg leading-snug mb-2 line-clamp-2">Community Cleanup Drive {i}</h3>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                    <span className="flex items-center gap-1">
-                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                      City Park
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
-                    <span className="flex items-center gap-1">
-                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      Dec 15, 2024
-                    </span>
-                  </div>
-                  <Link href="/upcoming-events" className="w-full py-2 px-4 bg-primary text-white text-center rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">View Event</Link>
-                </div>
-              </div>
-            ))}
+            <RecentEvents />
           </div>
         </div>
       </section>
