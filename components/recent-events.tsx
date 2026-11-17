@@ -39,7 +39,7 @@ export function RecentEvents() {
 
   if (loading) {
     return (
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <EventSkeleton key={i} />
         ))}
@@ -56,37 +56,38 @@ export function RecentEvents() {
   }
 
   return (
-    <div className="grid md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {events.map((event) => (
-        <div key={event._id} className="h-full flex flex-col border border-border rounded-xl overflow-hidden bg-secondary/30">
-          <div className="h-48 overflow-hidden">
+        <div key={event._id} className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-background shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+          <div className="relative h-48 w-full overflow-hidden">
             <img
               src={event.thumbnail}
               alt={event.title}
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              className="h-48 w-full object-cover transition-transform duration-300 group-hover:scale-105"
               loading="lazy"
             />
-          </div>
-          <div className="p-4 flex-1 flex flex-col">
-            <h3 className="font-semibold text-lg leading-snug mb-2 line-clamp-2 text-foreground">{event.title}</h3>
-            <span className="self-start inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary mb-2">
+            <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-background/90 px-2.5 py-0.5 text-xs font-medium text-foreground backdrop-blur">
               {event.eventType}
             </span>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+          </div>
+          <div className="flex flex-1 flex-col p-5">
+            <h3 className="mb-2 line-clamp-2 text-lg font-semibold leading-snug text-foreground">{event.title}</h3>
+            <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">{event.description}</p>
+            <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
+                <MapPin className="h-3 w-3 shrink-0" />
                 {event.location}
               </span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
+            <div className="mb-4 flex items-center gap-2 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
+                <Clock className="h-3 w-3 shrink-0" />
                 {format(new Date(event.eventDate), "MMM d, yyyy h:mm a")}
               </span>
             </div>
             <Link
               href={`/events/${event._id}`}
-              className="mt-auto w-full py-2 px-4 bg-primary text-white text-center rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+              className="mt-auto w-full rounded-lg bg-primary px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-primary/90"
             >
               View Event
             </Link>
