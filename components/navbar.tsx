@@ -103,12 +103,6 @@ export function Navbar() {
                   </div>
                   <div
                     className="px-4 py-2 text-sm text-foreground hover:bg-accent cursor-pointer rounded-lg"
-                    onClick={() => { setDropdownOpen(false); router.push("/my-events"); }}
-                  >
-                    <Plus className="h-4 w-4 mr-2" /> My Events
-                  </div>
-                  <div
-                    className="px-4 py-2 text-sm text-foreground hover:bg-accent cursor-pointer rounded-lg"
                     onClick={() => { setDropdownOpen(false); router.push("/joined-events"); }}
                   >
                     <Users className="h-4 w-4 mr-2" /> Joined Events
@@ -162,12 +156,6 @@ export function Navbar() {
                   className="block px-4 py-2 text-sm font-medium text-foreground hover:bg-accent rounded-lg flex items-center gap-2"
                 >
                   <Calendar className="h-4 w-4" /> Manage Events
-                </Link>
-                <Link
-                  href="/my-events"
-                  className="block px-4 py-2 text-sm font-medium text-foreground hover:bg-accent rounded-lg flex items-center gap-2"
-                >
-                  <Plus className="h-4 w-4" /> My Events
                 </Link>
                 <Link
                   href="/joined-events"

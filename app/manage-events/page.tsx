@@ -18,11 +18,23 @@ interface ManagedEvent {
   eventDate: string;
 }
 
+const EVENT_TYPES = ["Cleanup", "Plantation", "Donation", "Awareness", "Relief"];
+
 export default function ManageEventsPage() {
   const { session, isPending, authenticated } = useRequireAuth();
   const [events, setEvents] = useState<ManagedEvent[]>([]);
   const [fetched, setFetched] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<ManagedEvent | null>(null);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    eventType: EVENT_TYPES[0],
+    thumbnailUrl: "",
+    location: "",
+    eventDate: "",
+  });
+  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
   const loading = !fetched;
@@ -97,12 +109,66 @@ export default function ManageEventsPage() {
     );
   }
 
+  function openEdit(event: ManagedEvent) {
+    const date = new Date(event.eventDate);
+    const pad = (value: number) => String(value).padStart(2, "0");
+    const eventDate = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+
+    setEditing(event);
+    setEditForm({
+      title: event.title,
+      description: event.description,
+      eventType: event.eventType,
+      thumbnailUrl: event.thumbnailUrl,
+      location: event.location,
+      eventDate,
+    });
+  }
+
+  async function handleUpdate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editing) return;
+
+    const eventDate = new Date(editForm.eventDate);
+    if (Number.isNaN(eventDate.getTime()) || eventDate <= new Date()) {
+      toast({
+        title: "Invalid event date",
+        description: "Choose a future date and time.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await api.put(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${editing.id}`, {
+        ...editForm,
+        eventDate: eventDate.toISOString(),
+      });
+      if (res.ok) {
+        setEvents((currentEvents) =>
+          currentEvents.map((event) =>
+            event.id === editing.id ? { ...event, ...editForm, eventDate: eventDate.toISOString() } : event
+          )
+        );
+        toast({ title: "Event updated" });
+        setEditing(null);
+      } else {
+        toast({ title: "Failed to update event", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Failed to update event", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleDelete() {
     if (!deleteId) return;
     try {
       const res = await api.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${deleteId}`);
       if (res.ok) {
-        setEvents(events.filter((e) => e.id !== deleteId));
+        setEvents((currentEvents) => currentEvents.filter((event) => event.id !== deleteId));
         toast({ title: "Event deleted" });
       } else {
         toast({ title: "Failed to delete", variant: "destructive" });
@@ -182,8 +248,14 @@ export default function ManageEventsPage() {
                   </div>
                   <div className="flex gap-2 mt-auto">
                     <button
+                      onClick={() => openEdit(event)}
+                      className="flex-1 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-deep-navy"
+                    >
+                      Edit
+                    </button>
+                    <button
                       onClick={() => { setDeleteId(event.id); }}
-                      className="flex-1 py-2 px-3 bg-destructive text-white rounded-lg text-sm font-medium hover:bg-destructive/90 transition-colors"
+                      className="flex-1 rounded-xl bg-destructive px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90"
                     >
                       Delete
                     </button>
@@ -194,6 +266,80 @@ export default function ManageEventsPage() {
           </div>
         )}
       </div>
+
+      {editing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <form onSubmit={handleUpdate} className="max-h-[90vh] w-full max-w-lg space-y-4 overflow-y-auto rounded-2xl border border-border bg-background p-6 shadow-2xl">
+            <h2 className="text-xl font-bold text-foreground">Edit Event</h2>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Title</label>
+              <input
+                type="text"
+                required
+                value={editForm.title}
+                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                className="w-full rounded-xl border border-border bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Description</label>
+              <textarea
+                rows={4}
+                required
+                value={editForm.description}
+                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                className="w-full rounded-xl border border-border bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Event Type</label>
+                <select
+                  value={editForm.eventType}
+                  onChange={(e) => setEditForm({ ...editForm, eventType: e.target.value })}
+                  className="w-full rounded-xl border border-border bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  {EVENT_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Date &amp; Time</label>
+                <input
+                  type="datetime-local"
+                  required
+                  value={editForm.eventDate}
+                  onChange={(e) => setEditForm({ ...editForm, eventDate: e.target.value })}
+                  className="w-full rounded-xl border border-border bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Thumbnail URL</label>
+              <input
+                type="url"
+                required
+                value={editForm.thumbnailUrl}
+                onChange={(e) => setEditForm({ ...editForm, thumbnailUrl: e.target.value })}
+                className="w-full rounded-xl border border-border bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Location</label>
+              <input
+                type="text"
+                required
+                value={editForm.location}
+                onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                className="w-full rounded-xl border border-border bg-background px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+              <Button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Changes"}</Button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {deleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
