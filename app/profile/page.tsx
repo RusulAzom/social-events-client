@@ -8,6 +8,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui-button";
 import Image from "next/image";
 
+const DEFAULT_AVATAR =
+  "https://png.pngtree.com/png-vector/20260121/ourlarge/pngtree-random-user-profile-generator-app-icon-creative-design-white-background-png-image_18583246.webp";
+
 export default function ProfilePage() {
   const { session, isPending, authenticated } = useRequireAuth();
   const [nameOverride, setNameOverride] = useState<string | null>(null);
@@ -17,6 +20,7 @@ export default function ProfilePage() {
 
   const name = nameOverride ?? session?.user?.name ?? "";
   const image = imageOverride ?? session?.user?.image ?? "";
+  const displayImage = image || DEFAULT_AVATAR;
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -68,20 +72,14 @@ export default function ProfilePage() {
         <div className="bg-background rounded-xl border border-border p-8 shadow-sm">
           <div className="flex flex-col md:flex-row gap-8 items-start">
             <div className="flex-shrink-0">
-              {image ? (
-                <Image
-                  src={image}
-                  alt="Profile"
-                  className="h-24 w-24 rounded-full object-cover border border-border"
-                  width={96}
-                  height={96}
-                  priority
-                />
-              ) : (
-                <div className="h-24 w-24 rounded-full bg-primary flex items-center justify-center text-white font-bold text-3xl">
-                  {name?.charAt(0)?.toUpperCase() || "U"}
-                </div>
-              )}
+              <Image
+                src={displayImage}
+                alt="Profile"
+                className="h-24 w-24 rounded-full object-cover border border-border"
+                width={96}
+                height={96}
+                priority
+              />
             </div>
             <div className="flex-1">
               <form onSubmit={handleSave} className="space-y-6">

@@ -1,49 +1,65 @@
+import { authClient } from "@/lib/auth-client";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-let cachedToken: string | null = null;
-let tokenPromise: Promise<string | null> | null = null;
+const cachedTokens = new Map<string, string>();
+const tokenPromises = new Map<string, Promise<string>>();
 
 /**
  * Fetches a backend JWT from ${NEXT_PUBLIC_API_URL}/api/jwt
- * using the current BetterAuth session cookies.
+ * for the current BetterAuth session.
  */
-async function fetchBackendToken(): Promise<string | null> {
-  if (tokenPromise) return tokenPromise;
-  if (cachedToken) return cachedToken;
+async function fetchBackendToken(): Promise<{ token: string; sessionToken: string }> {
+  const { data: session, error } = await authClient.getSession();
+  const sessionToken = session?.session?.token;
 
-  tokenPromise = (async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/jwt`, {
-        method: "GET",
-        credentials: "include", // send BetterAuth cookies
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!res.ok) {
-        cachedToken = null;
-        return null;
-      }
-      const data = await res.json();
-      cachedToken = data.token || null;
-      return cachedToken;
-    } catch {
-      cachedToken = null;
-      return null;
-    } finally {
-      tokenPromise = null;
+  if (error || !sessionToken) {
+    throw new Error("A signed-in session is required for this request.");
+  }
+  if (!API_URL) {
+    throw new Error("NEXT_PUBLIC_API_URL is not configured.");
+  }
+
+  const cachedToken = cachedTokens.get(sessionToken);
+  if (cachedToken) return { token: cachedToken, sessionToken };
+
+  const existingRequest = tokenPromises.get(sessionToken);
+  if (existingRequest) return { token: await existingRequest, sessionToken };
+
+  const tokenRequest = (async () => {
+    const res = await fetch(`${API_URL}/api/jwt`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionToken }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Backend token request failed (${res.status}).`);
     }
+
+    const data: { token?: string } = await res.json();
+    if (!data.token) {
+      throw new Error("Backend token response did not include a token.");
+    }
+
+    cachedTokens.set(sessionToken, data.token);
+    return data.token;
   })();
 
-  return tokenPromise;
+  tokenPromises.set(sessionToken, tokenRequest);
+  try {
+    return { token: await tokenRequest, sessionToken };
+  } finally {
+    tokenPromises.delete(sessionToken);
+  }
 }
 
 /**
  * Clear cached token (e.g. on logout)
  */
 export function clearCachedToken(): void {
-  cachedToken = null;
-  tokenPromise = null;
+  cachedTokens.clear();
+  tokenPromises.clear();
 }
 
 /**
@@ -54,20 +70,21 @@ export async function fetchWithAuth(
   input: RequestInfo | URL,
   init?: RequestInit
 ): Promise<Response> {
-  const token = await fetchBackendToken();
+  const credentials = await fetchBackendToken();
+  const headers = new Headers(init?.headers);
+  headers.set("Authorization", `Bearer ${credentials.token}`);
 
-  const headers: Record<string, string> = {
-    ...(init?.headers as Record<string, string> || {}),
-  };
-
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  return fetch(input, {
+  const response = await fetch(input, {
     ...init,
     headers,
   });
+
+  if (response.status !== 401) return response;
+
+  cachedTokens.delete(credentials.sessionToken);
+  const refreshedCredentials = await fetchBackendToken();
+  headers.set("Authorization", `Bearer ${refreshedCredentials.token}`);
+  return fetch(input, { ...init, headers });
 }
 
 /**
@@ -76,26 +93,30 @@ export async function fetchWithAuth(
 export const api = {
   get: (url: string, init?: RequestInit) =>
     fetchWithAuth(url, { ...init, method: "GET" }),
-  post: (url: string, body?: unknown, init?: RequestInit) =>
-    fetchWithAuth(url, {
+  post: (url: string, body?: unknown, init?: RequestInit) => {
+    const headers = new Headers(init?.headers);
+    if (body !== undefined && !headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
+    return fetchWithAuth(url, {
       ...init,
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(init?.headers as Record<string, string> || {}),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    }),
-  put: (url: string, body?: unknown, init?: RequestInit) =>
-    fetchWithAuth(url, {
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  },
+  put: (url: string, body?: unknown, init?: RequestInit) => {
+    const headers = new Headers(init?.headers);
+    if (body !== undefined && !headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
+    return fetchWithAuth(url, {
       ...init,
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...(init?.headers as Record<string, string> || {}),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    }),
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  },
   delete: (url: string, init?: RequestInit) =>
     fetchWithAuth(url, { ...init, method: "DELETE" }),
 };

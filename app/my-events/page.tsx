@@ -37,7 +37,8 @@ export default function MyEventsPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get(`${process.env.NEXT_PUBLIC_API_URL}/api/my-events`);
+        const query = new URLSearchParams({ email: session.user.email });
+        const res = await api.get(`${process.env.NEXT_PUBLIC_API_URL}/api/my-events?${query}`);
         if (res.ok && !cancelled) {
           const data = await res.json();
           const raw = data.events || data || [];

@@ -58,9 +58,13 @@ function CreateEventForm() {
   const router = useRouter();
   const { session, isPending, authenticated } = useRequireAuth();
 
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const now = new Date();
-  const minDateTime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const minDateTime = (() => {
+    const minimum = new Date();
+    minimum.setSeconds(0, 0);
+    minimum.setMinutes(minimum.getMinutes() + 1);
+    const pad = (value: number) => String(value).padStart(2, "0");
+    return `${minimum.getFullYear()}-${pad(minimum.getMonth() + 1)}-${pad(minimum.getDate())}T${pad(minimum.getHours())}:${pad(minimum.getMinutes())}`;
+  })();
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -69,7 +73,7 @@ function CreateEventForm() {
     if (!formData.thumbnailUrl.trim()) newErrors.thumbnailUrl = "Thumbnail URL is required";
     if (!formData.location.trim()) newErrors.location = "Location is required";
     if (!formData.eventDate) newErrors.eventDate = "Event date is required";
-    else if (new Date(formData.eventDate) < new Date()) {
+    else if (Number.isNaN(new Date(formData.eventDate).getTime()) || new Date(formData.eventDate) <= new Date()) {
       newErrors.eventDate = "Event date and time must be in the future";
     }
     setErrors(newErrors);
@@ -83,7 +87,7 @@ function CreateEventForm() {
       delete next.eventDate;
       return next;
     });
-    if (value && new Date(value) < new Date()) {
+    if (value && (Number.isNaN(new Date(value).getTime()) || new Date(value) <= new Date())) {
       setErrors((prev) => ({ ...prev, eventDate: "Event date and time must be in the future" }));
     }
   };
@@ -106,16 +110,28 @@ function CreateEventForm() {
 
     setLoading(true);
     try {
-      const res = await api.post(`${process.env.NEXT_PUBLIC_API_URL}/api/events`, formData);
+      const res = await api.post(`${process.env.NEXT_PUBLIC_API_URL}/api/events`, {
+        ...formData,
+        eventDate: new Date(formData.eventDate).toISOString(),
+        creatorName: session.user.name,
+      });
 
       if (res.ok) {
         toast({ title: "Event created!", description: "Your event has been successfully created." });
         router.push("/upcoming-events");
       } else {
-        toast({ title: "Failed to create event", description: "Please try again.", variant: "destructive" });
+        toast({
+          title: "Failed to create event",
+          description: `The server rejected the request (${res.status}).`,
+          variant: "destructive",
+        });
       }
-    } catch {
-      toast({ title: "Failed to create event", description: "Please try again.", variant: "destructive" });
+    } catch (error) {
+      toast({
+        title: "Failed to create event",
+        description: error instanceof Error ? error.message : "The request could not be completed.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

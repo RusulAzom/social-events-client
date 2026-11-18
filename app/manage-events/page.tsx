@@ -32,7 +32,8 @@ export default function ManageEventsPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get(`${process.env.NEXT_PUBLIC_API_URL}/api/events/manage`);
+        const query = new URLSearchParams({ email: session.user.email });
+        const res = await api.get(`${process.env.NEXT_PUBLIC_API_URL}/api/my-events?${query}`);
         if (res.ok && !cancelled) {
           const data = await res.json();
           const raw = data.events || data || [];
@@ -53,7 +54,7 @@ export default function ManageEventsPage() {
     return () => {
       cancelled = true;
     };
-  }, [session, toast]);
+  }, [isPending, session, toast]);
 
   if (isPending) {
     return (

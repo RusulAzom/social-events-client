@@ -31,7 +31,8 @@ export default function JoinedEventsPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get(`${process.env.NEXT_PUBLIC_API_URL}/api/joined-events`);
+        const query = new URLSearchParams({ email: session.user.email });
+        const res = await api.get(`${process.env.NEXT_PUBLIC_API_URL}/api/joined-events?${query}`);
         if (res.ok && !cancelled) {
           const data = await res.json();
           const raw = data.events || data || [];

@@ -85,15 +85,24 @@ function EventDetails() {
     try {
       const res = await api.post(`${process.env.NEXT_PUBLIC_API_URL}/api/joined-events`, {
         eventId: event.id,
+        userEmail: session.user.email,
       });
 
       if (res.ok) {
         toast({ title: "Joined!", description: "You have successfully joined this event." });
       } else {
-        toast({ title: "Failed to join", description: "Please try again.", variant: "destructive" });
+        toast({
+          title: "Failed to join",
+          description: `The server rejected the request (${res.status}).`,
+          variant: "destructive",
+        });
       }
-    } catch {
-      toast({ title: "Failed to join", description: "Please try again.", variant: "destructive" });
+    } catch (error) {
+      toast({
+        title: "Failed to join",
+        description: error instanceof Error ? error.message : "The request could not be completed.",
+        variant: "destructive",
+      });
     }
   }
 
