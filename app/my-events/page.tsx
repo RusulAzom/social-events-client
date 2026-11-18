@@ -112,7 +112,7 @@ export default function MyEventsPage() {
     try {
       const res = await api.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${deleteId}`);
       if (res.ok) {
-        setEvents(events.filter((e) => e.id !== deleteId));
+        setEvents((currentEvents) => currentEvents.filter((event) => event.id !== deleteId));
         toast({ title: "Event deleted" });
       } else {
         toast({ title: "Failed to delete", variant: "destructive" });
