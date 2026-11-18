@@ -5,6 +5,13 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const cachedTokens = new Map<string, string>();
 const tokenPromises = new Map<string, Promise<string>>();
 
+export class AuthenticationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AuthenticationError";
+  }
+}
+
 /**
  * Fetches a backend JWT from ${NEXT_PUBLIC_API_URL}/api/jwt
  * for the current BetterAuth session.
@@ -12,9 +19,10 @@ const tokenPromises = new Map<string, Promise<string>>();
 async function fetchBackendToken(): Promise<{ token: string; sessionToken: string }> {
   const { data: session, error } = await authClient.getSession();
   const sessionToken = session?.session?.token;
+  const email = session?.user?.email;
 
-  if (error || !sessionToken) {
-    throw new Error("A signed-in session is required for this request.");
+  if (error || !sessionToken || !email) {
+    throw new AuthenticationError("Your sign-in session could not be verified. Please log in again.");
   }
   if (!API_URL) {
     throw new Error("NEXT_PUBLIC_API_URL is not configured.");
@@ -30,16 +38,16 @@ async function fetchBackendToken(): Promise<{ token: string; sessionToken: strin
     const res = await fetch(`${API_URL}/api/jwt`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionToken }),
+      body: JSON.stringify({ email, sessionToken }),
     });
 
     if (!res.ok) {
-      throw new Error(`Backend token request failed (${res.status}).`);
+      throw new AuthenticationError("Your sign-in session could not be verified. Please log in again.");
     }
 
     const data: { token?: string } = await res.json();
     if (!data.token) {
-      throw new Error("Backend token response did not include a token.");
+      throw new AuthenticationError("Your sign-in session could not be verified. Please log in again.");
     }
 
     cachedTokens.set(sessionToken, data.token);

@@ -5,7 +5,7 @@ import { useState, useEffect, Suspense } from "react";
 
 import { useToast } from "@/components/ui/use-toast";
 import { authClient } from "@/lib/auth-client";
-import { api } from "@/lib/api";
+import { api, AuthenticationError } from "@/lib/api";
 import { Button } from "@/components/ui-button";
 import { Calendar, MapPin, Users } from "lucide-react";
 import Image from "next/image";
@@ -90,6 +90,12 @@ function EventDetails() {
 
       if (res.ok) {
         toast({ title: "Joined!", description: "You have successfully joined this event." });
+      } else if (res.status === 401) {
+        toast({
+          title: "Please log in again",
+          description: "Your session expired or could not be verified. Sign in and retry joining this event.",
+          variant: "destructive",
+        });
       } else {
         toast({
           title: "Failed to join",
@@ -99,7 +105,7 @@ function EventDetails() {
       }
     } catch (error) {
       toast({
-        title: "Failed to join",
+        title: error instanceof AuthenticationError ? "Please log in again" : "Failed to join",
         description: error instanceof Error ? error.message : "The request could not be completed.",
         variant: "destructive",
       });
