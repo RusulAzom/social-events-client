@@ -3,41 +3,72 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
-  --primary: #059669;
-  --secondary: #f1f5f9;
-  --accent: #ecfdf5;
-  --muted-foreground: #64748b;
-  --border: #e2e8f0;
+  color-scheme: light;
+  --background: #f1f7f9;
+  --surface: #ffffff;
+  --foreground: #07326a;
+  --primary: #0a61c9;
+  --primary-foreground: #ffffff;
+  --secondary: #e2edf5;
+  --secondary-foreground: #07326a;
+  --accent: #dceaf3;
+  --accent-foreground: #064089;
+  --muted-foreground: #506f91;
+  --border: #749dc8;
+  --ring: #0a61c9;
+  --destructive: #b42335;
+  --destructive-foreground: #ffffff;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-slate-blue: #749dc8;
+  --color-deep-navy: #064089;
+  --color-dark-slate: #07326a;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 .dark {
-  --background: #020617;
-  --foreground: #f1f5f9;
-  --primary: #10b981;
-  --secondary: #1e293b;
-  --accent: #022c22;
-  --muted-foreground: #94a3b8;
-  --border: #1e293b;
+  color-scheme: dark;
+  --background: #07326a;
+  --surface: #064089;
+  --foreground: #f1f7f9;
+  --primary: #0a61c9;
+  --primary-foreground: #ffffff;
+  --secondary: #064089;
+  --secondary-foreground: #f1f7f9;
+  --accent: #064089;
+  --accent-foreground: #f1f7f9;
+  --muted-foreground: #bfd2e5;
+  --border: #749dc8;
+  --ring: #749dc8;
+  --destructive: #f87171;
+  --destructive-foreground: #07326a;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: rgb(10 97 201 / 20%);
+  color: #07326a;
 }
 
 /* Custom scrollbar */
@@ -49,11 +80,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: #749dc8;
+  border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #0a61c9;
 }
 
 /* Skeleton animation */

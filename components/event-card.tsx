@@ -17,7 +17,7 @@ export interface Event {
 
 export function EventCard({ event }: { event: Event }) {
   return (
-    <article className="h-full flex flex-col border border-border rounded-xl overflow-hidden hover:shadow-md transition-all duration-200 group">
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#749DC8]/30 bg-background shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#0A61C9]/35 hover:shadow-xl">
       <div className="relative h-48 overflow-hidden">
         <Image
           src={event.thumbnailUrl}
@@ -27,7 +27,7 @@ export function EventCard({ event }: { event: Event }) {
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
           priority
         />
-        <div className="absolute top-2 left-2 bg-background/90 backdrop-blur px-2 py-1 rounded text-xs font-medium text-foreground">
+        <div className="absolute left-3 top-3 rounded-full border border-white/60 bg-background/90 px-3 py-1 text-xs font-semibold text-foreground shadow-sm backdrop-blur-md">
           {event.eventType}
         </div>
       </div>

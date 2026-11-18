@@ -30,13 +30,13 @@ export function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-blur]:bg-background/80">
+    <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/90 shadow-sm backdrop-blur-xl">
       <div className="flex flex-shrink-0 items-center justify-between px-4 py-3 md:px-6 lg:px-8">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#0A61C9] to-[#064089] text-sm font-bold text-white shadow-sm">
             SE
           </div>
-          <Link href="/" className="text-xl font-bold tracking-tight text-foreground">
+          <Link href="/" className="text-xl font-bold tracking-tight text-foreground transition-colors hover:text-primary">
             SocialEvents
           </Link>
         </div>
@@ -44,14 +44,14 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-1">
           <Link
             href="/upcoming-events"
-            className="px-4 py-2 text-sm font-medium text-foreground hover:bg-accent rounded-lg transition-colors"
+            className="rounded-full px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
             Upcoming Events
           </Link>
           {isAuthenticated && (
             <Link
               href="/create-event"
-              className="px-4 py-2 text-sm font-medium text-foreground hover:bg-accent rounded-lg transition-colors flex items-center gap-1"
+              className="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
             >
               <Plus className="h-4 w-4" /> Create Event
             </Link>
@@ -125,7 +125,7 @@ export function Navbar() {
           ) : (
             <Link
               href="/login"
-              className="px-5 py-2 text-sm font-medium text-foreground hover:bg-accent rounded-lg transition-colors"
+              className="rounded-full bg-gradient-to-r from-[#0A61C9] to-[#064089] px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
             >
               Login
             </Link>

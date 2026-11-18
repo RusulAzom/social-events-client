@@ -58,7 +58,7 @@ export function RecentEvents() {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {events.map((event) => (
-        <div key={event._id} className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-background shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+        <article key={event._id} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#749DC8]/30 bg-background shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#0A61C9]/35 hover:shadow-xl">
           <div className="relative h-48 w-full overflow-hidden">
             <img
               src={event.thumbnail}
@@ -66,12 +66,12 @@ export function RecentEvents() {
               className="h-48 w-full object-cover transition-transform duration-300 group-hover:scale-105"
               loading="lazy"
             />
-            <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-background/90 px-2.5 py-0.5 text-xs font-medium text-foreground backdrop-blur">
+            <span className="absolute left-3 top-3 inline-flex items-center rounded-full border border-white/60 bg-background/90 px-3 py-1 text-xs font-semibold text-foreground shadow-sm backdrop-blur-md">
               {event.eventType}
             </span>
           </div>
           <div className="flex flex-1 flex-col p-5">
-            <h3 className="mb-2 line-clamp-2 text-lg font-semibold leading-snug text-foreground">{event.title}</h3>
+            <h3 className="mb-2 line-clamp-2 text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">{event.title}</h3>
             <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">{event.description}</p>
             <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
@@ -87,12 +87,12 @@ export function RecentEvents() {
             </div>
             <Link
               href={`/events/${event._id}`}
-              className="mt-auto w-full rounded-lg bg-primary px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-primary/90"
+              className="mt-auto w-full rounded-xl bg-gradient-to-r from-[#0A61C9] to-[#064089] px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:from-[#064089] hover:to-[#07326A] hover:shadow-md"
             >
               View Event
             </Link>
           </div>
-        </div>
+        </article>
       ))}
     </div>
   );

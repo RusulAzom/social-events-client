@@ -58,7 +58,7 @@ export default function UpcomingEventsPage() {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="border-b border-border bg-background sticky top-0 z-10">
+      <div className="sticky top-0 z-10 border-b border-border/40 bg-background/90 shadow-sm backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="flex-1">
@@ -102,17 +102,18 @@ export default function UpcomingEventsPage() {
         ) : (
           <div className="grid md:grid-cols-3 gap-6">
             {filteredEvents.map((event) => (
-              <div key={event.id} className="h-full flex flex-col border border-border rounded-xl overflow-hidden bg-background">
-                <div className="h-48 overflow-hidden">
+              <article key={event.id} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#749DC8]/30 bg-background shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#0A61C9]/35 hover:shadow-xl">
+                <div className="relative h-48 overflow-hidden">
                   <img
                     src={event.thumbnailUrl}
                     alt={event.title}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                   />
+                  <span className="absolute left-3 top-3 rounded-full border border-white/60 bg-background/90 px-3 py-1 text-xs font-semibold text-foreground shadow-sm backdrop-blur-md">{event.eventType}</span>
                 </div>
                 <div className="p-4 flex-1 flex flex-col">
-                  <h3 className="font-semibold text-lg leading-snug mb-2 line-clamp-2 text-foreground">{event.title}</h3>
+                  <h3 className="mb-2 line-clamp-2 text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">{event.title}</h3>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                     <span className="flex items-center gap-1">
                           <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -125,10 +126,9 @@ export default function UpcomingEventsPage() {
                       {new Date(event.eventDate).toLocaleDateString()}
                     </span>
                   </div>
-                  <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-primary/10 text-primary">{event.eventType}</span>
-                  <Link href={`/events/${event.id}`} className="mt-auto w-full py-2 px-4 bg-primary text-white text-center rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">View Event</Link>
+                  <Link href={`/events/${event.id}`} className="mt-auto w-full rounded-xl bg-gradient-to-r from-[#0A61C9] to-[#064089] px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:from-[#064089] hover:to-[#07326A] hover:shadow-md">View Event</Link>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         )}
