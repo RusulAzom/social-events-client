@@ -1,6 +1,16 @@
 import { authClient } from "@/lib/auth-client";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const isProd = process.env.NODE_ENV === "production";
+
+// Resolve the backend API URL dynamically. Falls back to localhost:5000 in
+// development so the dev server works without env overrides. In production
+// NEXT_PUBLIC_API_URL must be set (Vercel/Render).
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || (isProd ? undefined : "http://localhost:5000");
+
+if (!API_URL && isProd) {
+  throw new Error("NEXT_PUBLIC_API_URL is not configured.");
+}
 
 const cachedTokens = new Map<string, string>();
 const tokenPromises = new Map<string, Promise<string>>();
@@ -23,9 +33,6 @@ async function fetchBackendToken(): Promise<{ token: string; sessionToken: strin
 
   if (error || !sessionToken || !email) {
     throw new AuthenticationError("Your sign-in session could not be verified. Please log in again.");
-  }
-  if (!API_URL) {
-    throw new Error("NEXT_PUBLIC_API_URL is not configured.");
   }
 
   const cachedToken = cachedTokens.get(sessionToken);
